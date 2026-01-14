@@ -4,6 +4,15 @@ A Windows game optimization tool that applies advanced system tweaks to reduce l
 
 ---
 
+## Build guide
+**Visual Studio**<br>
+
+New project: empty C++<br>
+Add .cpp files to Source files as Existing item<br>
+Add .h files to Header files as Existing item<br>
+Right click project, Set as startup project<br>
+Select Release, build with Win+Shift+B<br>
+
 ## Features
 
 ### Core Optimizations
