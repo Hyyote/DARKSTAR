@@ -21,16 +21,13 @@ namespace
         }
 
         int sizeRequired = ::WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, nullptr, 0, nullptr, nullptr);
-        if (sizeRequired <= 0)
+        if (sizeRequired <= 1)
         {
             return std::string();
         }
 
         std::string buffer(static_cast<size_t>(sizeRequired - 1), '\0');
-        if (!buffer.empty())
-        {
-            ::WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, &buffer[0], sizeRequired, nullptr, nullptr);
-        }
+        ::WideCharToMultiByte(CP_UTF8, 0, value.c_str(), -1, &buffer[0], sizeRequired, nullptr, nullptr);
         return buffer;
     }
 
@@ -221,6 +218,18 @@ void ConfigParser::ParseSetting(const std::wstring& key, const std::wstring& val
     {
         settings_.blockNonGamingMonitor = ParseBoolean(value, settings_.blockNonGamingMonitor);
     }
+    else if (EqualsIgnoreCase(key, L"enablescramble"))
+    {
+        settings_.enableScramble = ParseBoolean(value, settings_.enableScramble);
+    }
+    else if (EqualsIgnoreCase(key, L"scrambleintervalms"))
+    {
+        int parsed = settings_.scrambleIntervalMs;
+        if (TryParseInteger(value, parsed))
+        {
+            settings_.scrambleIntervalMs = parsed;
+        }
+    }
     else if (EqualsIgnoreCase(key, L"occupied_affinity_cores"))
     {
         std::wstring lower = ToLower(value);
@@ -247,10 +256,6 @@ void ConfigParser::ParseSetting(const std::wstring& key, const std::wstring& val
         {
             settings_.occupiedWeakPhysical = ParseCoreList(value);
         }
-    }
-    else if (EqualsIgnoreCase(key, L"lockcpufrequency"))
-    {
-        settings_.lockCPUFrequency = ParseBoolean(value, settings_.lockCPUFrequency);
     }
     else if (EqualsIgnoreCase(key, L"threadrulereapplyinterval"))
     {
