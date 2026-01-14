@@ -63,7 +63,8 @@ struct SettingsSection
     bool enableIdleSwitching = true;
     bool winBlockKeys = false;
     bool blockNonGamingMonitor = false;
-    bool lockCPUFrequency = false;
+    bool enableScramble = false;
+    int scrambleIntervalMs = 2000;
     int threadRuleReapplyIntervalMs = 30000;
 
     bool affinityAuto = false;
