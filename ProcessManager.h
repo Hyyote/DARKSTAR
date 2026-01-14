@@ -58,9 +58,10 @@ private:
     bool startExplorerOnExit_ = false;
     bool gameModeActive_ = false;
     bool idleStateDisabled_ = false;
-    bool frequencyLocked_ = false;
     ULONGLONG lastExplorerKill_ = 0;
     ULONGLONG lastThreadRuleApplication_ = 0;
+    ULONGLONG lastScramble_ = 0;
+    size_t scrambleIndex_ = 0;
 
     std::unordered_map<DWORD, SuspendedProcessState> suspendedProcesses_;
     std::unordered_map<DWORD, PriorityRestoreState> priorityRestore_;
@@ -81,8 +82,6 @@ private:
     void RestorePriorityForProcess(DWORD processId);
     bool ApplyIdleState(bool disableIdle);
     void RestoreIdleState();
-    bool ApplyFrequencyLock(bool lock);
-    void RestoreFrequencySettings();
     bool HaveMonitoredProcessesChanged(const ConfigParser& config);
     bool IsProcessRunning(DWORD processId) const;
     bool ShouldApplyRule(uint64_t key, ULONGLONG now);
