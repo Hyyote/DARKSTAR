@@ -50,7 +50,7 @@ DARKSTAR is configured via `darkstar.ini`. The configuration is hot-reloaded eve
 | `WinBlockKeys` | Block Windows key during gaming. | `true` |
 | `BlockNoGamingMonitor` | Restrict cursor to the monitor with the active game. | `true` |
 | `EnableScramble` | Rotates processes around CPU cores. | `false` |
-| `ScrambleIntervalMs` | Scramble interval. | `2000` |
+| `ScrambleIntervalMs` | Scramble interval. | `5000` |
 | `ThreadRuleReapplyInterval` | Milliseconds between thread rule re-applications. Higher values reduce DARKSTAR overhead. | `30000` |
 | `occupied_affinity_cores` | Physical cores to exclude from `[auto]` affinity. Use `auto` for device/E-core exclusions.  | `auto` |
 | `occupied_ideal_processor_cores` | Physical cores to exclude from `(auto)` ideal processor placement. | `auto` |
@@ -113,13 +113,13 @@ EnableIdleSwitching=true
 WinBlockKeys=true
 BlockNoGamingMonitor=true
 # Core scrambling feature (periodically changes process affinity to different cores)
-EnableScramble=false
-ScrambleIntervalMs=2000
+EnableScramble=true
+ScrambleIntervalMs=5000
 # Thread rule re-application interval (ms)
 ThreadRuleReapplyInterval=30000
 # Physical cores reserved from auto affinity / ideal assignment
 # Use "auto" to let DARKSTAR respect device/E-core exclusions automatically.
-occupied_affinity_cores=1,5
+occupied_affinity_cores=0,4,5
 occupied_ideal_processor_cores=
 occupied_weak_cores=6,7,8,9
 
