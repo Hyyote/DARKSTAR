@@ -6,6 +6,7 @@
 #include <cwctype>
 #include <memory>
 #include <type_traits>
+#include <unordered_map>
 
 #include "Logger.h"
 
@@ -51,6 +52,15 @@ namespace
         std::transform(lower.begin(), lower.end(), lower.begin(), [](wchar_t c) { return std::towlower(c); });
         return lower;
     }
+    
+    static const std::unordered_map<std::wstring, DWORD> priorityClassMap = {
+        {L"idle", IDLE_PRIORITY_CLASS},
+        {L"belownormal", BELOW_NORMAL_PRIORITY_CLASS},
+        {L"normal", NORMAL_PRIORITY_CLASS},
+        {L"abovenormal", ABOVE_NORMAL_PRIORITY_CLASS},
+        {L"high", HIGH_PRIORITY_CLASS},
+        {L"realtime", REALTIME_PRIORITY_CLASS}
+    };
 }
 
 bool CooldownTracker::CanTrigger(std::unordered_map<DWORD, ULONGLONG>& map, DWORD key, ULONGLONG intervalMs)
@@ -343,28 +353,9 @@ bool ThreadManager::ApplyProcessPriorityClass(DWORD processId, const std::wstrin
 
     auto closer = std::unique_ptr<std::remove_pointer<HANDLE>::type, decltype(&::CloseHandle)>(process, ::CloseHandle);
 
-    DWORD cls = NORMAL_PRIORITY_CLASS;
     std::wstring lower = ToLower(priorityClass);
-    if (lower == L"idle")
-    {
-        cls = IDLE_PRIORITY_CLASS;
-    }
-    else if (lower == L"belownormal")
-    {
-        cls = BELOW_NORMAL_PRIORITY_CLASS;
-    }
-    else if (lower == L"abovenormal")
-    {
-        cls = ABOVE_NORMAL_PRIORITY_CLASS;
-    }
-    else if (lower == L"high")
-    {
-        cls = HIGH_PRIORITY_CLASS;
-    }
-    else if (lower == L"realtime")
-    {
-        cls = REALTIME_PRIORITY_CLASS;
-    }
+    auto it = priorityClassMap.find(lower);
+    DWORD cls = (it != priorityClassMap.end()) ? it->second : NORMAL_PRIORITY_CLASS;
 
     if (!::SetPriorityClass(process, cls))
     {
