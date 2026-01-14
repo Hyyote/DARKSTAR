@@ -253,41 +253,57 @@ void HookManager::EnsureCursorClip(const GameInfo& game)
     }
 
     HWND target = ResolveGameWindow(game);
-    if (!target)
+    if (!target || !::IsWindow(target))
     {
         ReleaseCursorClip();
         return;
     }
 
-    HMONITOR monitor = ::MonitorFromWindow(target, MONITOR_DEFAULTTONEAREST);
-    if (!monitor)
+    RECT windowRect;
+    if (!::GetWindowRect(target, &windowRect))
     {
         ReleaseCursorClip();
         return;
     }
 
-    MONITORINFO info{};
-    info.cbSize = sizeof(info);
-    if (!::GetMonitorInfoW(monitor, &info))
+    // Adjust for window borders if present (get client area instead)
+    LONG style = ::GetWindowLong(target, GWL_STYLE);
+    if (style & WS_CAPTION)
     {
-        ReleaseCursorClip();
+        RECT clientRect;
+        if (!::GetClientRect(target, &clientRect))
+        {
+            ReleaseCursorClip();
+            return;
+        }
+        
+        POINT clientOrigin = {0, 0};
+        if (!::ClientToScreen(target, &clientOrigin))
+        {
+            ReleaseCursorClip();
+            return;
+        }
+        
+        windowRect.left = clientOrigin.x;
+        windowRect.top = clientOrigin.y;
+        windowRect.right = windowRect.left + clientRect.right;
+        windowRect.bottom = windowRect.top + clientRect.bottom;
+    }
+
+    if (cursorClipped_ && AreRectsEqual(windowRect, clipRect_))
+    {
         return;
     }
 
-    if (cursorClipped_ && AreRectsEqual(info.rcMonitor, clipRect_))
-    {
-        return;
-    }
-
-    if (!::ClipCursor(&info.rcMonitor))
+    if (!::ClipCursor(&windowRect))
     {
         LOG_WARN("Failed to clip cursor (error %lu)", ::GetLastError());
         return;
     }
 
-    clipRect_ = info.rcMonitor;
+    clipRect_ = windowRect;
     cursorClipped_ = true;
-    LOG_INFO("Cursor locked to active game monitor");
+    LOG_INFO("Cursor locked to active game window");
 }
 
 void HookManager::ReleaseCursorClip()
