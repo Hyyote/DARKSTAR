@@ -25,15 +25,13 @@ namespace
         return seed ^ (std::hash<T>{}(value) + 0x9e3779b97f4a7c15ull + (seed << 6) + (seed >> 2));
     }
 
-    std::wstring NormalizeName(const std::wstring& value)
+    std::wstring NormalizeName(std::wstring value)
     {
-        std::wstring lower(value);
-        std::transform(lower.begin(), lower.end(), lower.begin(), [](wchar_t c) { return std::towlower(c); });
-        if (lower.size() > 4 && lower.substr(lower.size() - 4) == L".exe")
-        {
-            lower = lower.substr(0, lower.size() - 4);
+        for (auto& c : value) c = std::towlower(c);
+        if (value.size() > 4 && value.compare(value.size() - 4, 4, L".exe") == 0) {
+            value.resize(value.size() - 4);
         }
-        return lower;
+        return value;
     }
 }
 
@@ -68,15 +66,6 @@ void ProcessManager::ActivateGameMode(const GameInfo& game,
     else
     {
         idleStateDisabled_ = false;
-    }
-
-    if (settings.lockCPUFrequency)
-    {
-        frequencyLocked_ = ApplyFrequencyLock(true);
-    }
-    else
-    {
-        frequencyLocked_ = false;
     }
 
     DisableMMCSS();
@@ -234,6 +223,45 @@ void ProcessManager::Update(const ConfigParser& config,
     {
         ApplySuspendPolicies(config);
         ApplyIdlePriorityPolicies(config);
+        
+        // Core scrambling: periodically rotate process affinity across cores
+        if (settings.enableScramble && settings.scrambleIntervalMs > 0)
+        {
+            ULONGLONG now = ::GetTickCount64();
+            if (lastScramble_ == 0 || (now - lastScramble_) >= static_cast<ULONGLONG>(settings.scrambleIntervalMs))
+            {
+                // Get number of processors to validate core existence
+                SYSTEM_INFO sysInfo;
+                ::GetSystemInfo(&sysInfo);
+                DWORD numProcessors = sysInfo.dwNumberOfProcessors;
+                
+                // Cycle through cores 2, 4, 6, 8 (similar to Poison's implementation)
+                // Only use cores that actually exist on the system
+                const size_t cores[] = {2, 4, 6, 8};
+                scrambleIndex_ = (scrambleIndex_ + 1) % 4;
+                size_t targetCore = cores[scrambleIndex_];
+                
+                if (targetCore < numProcessors)
+                {
+                    DWORD_PTR mask = 1ULL << targetCore;
+                    if (SetProcessAffinityMask(GetCurrentProcess(), mask))
+                    {
+                        LOG_INFO("Core scramble: set affinity to core %zu", targetCore);
+                    }
+                    else
+                    {
+                        LOG_WARN("Failed to apply core scramble (error %lu)", ::GetLastError());
+                    }
+                }
+                else
+                {
+                    LOG_WARN("Core scramble: target core %zu does not exist (only %lu cores available)", targetCore, numProcessors);
+                }
+                
+                lastScramble_ = now;
+            }
+        }
+        
         MaintainExplorerState(config.GetSettings());
     }
     else
@@ -334,12 +362,6 @@ void ProcessManager::DeactivateGameMode()
     {
         RestoreIdleState();
         idleStateDisabled_ = false;
-    }
-
-    if (frequencyLocked_)
-    {
-        RestoreFrequencySettings();
-        frequencyLocked_ = false;
     }
 
     appliedOnceRules_.clear();
@@ -614,19 +636,107 @@ bool ProcessManager::ApplyIdleState(bool disableIdle)
         return false;
     }
 
-    DWORD value = disableIdle ? 1 : 0;
     GUID subgroup = GUID_PROCESSOR_SETTINGS_SUBGROUP;
-    GUID setting = GUID_PROCESSOR_IDLE_DISABLE;
+    
+    // GUID_PROCESSOR_IDLE_DISABLE
+    GUID idleDisableGuid = GUID_PROCESSOR_IDLE_DISABLE;
+    
+    // GUID_PROCESSOR_IDLE_DEMOTE_THRESHOLD: 4b92d758-5a24-4851-a470-815d78aee119
+    GUID demoteThresholdGuid;
+    demoteThresholdGuid.Data1 = 0x4b92d758;
+    demoteThresholdGuid.Data2 = 0x5a24;
+    demoteThresholdGuid.Data3 = 0x4851;
+    demoteThresholdGuid.Data4[0] = 0xa4;
+    demoteThresholdGuid.Data4[1] = 0x70;
+    demoteThresholdGuid.Data4[2] = 0x81;
+    demoteThresholdGuid.Data4[3] = 0x5d;
+    demoteThresholdGuid.Data4[4] = 0x78;
+    demoteThresholdGuid.Data4[5] = 0xae;
+    demoteThresholdGuid.Data4[6] = 0xe1;
+    demoteThresholdGuid.Data4[7] = 0x19;
+    
+    // GUID_PROCESSOR_IDLE_PROMOTE_THRESHOLD: 7b224883-b3cc-4d79-819f-8374152cbe7c
+    GUID promoteThresholdGuid;
+    promoteThresholdGuid.Data1 = 0x7b224883;
+    promoteThresholdGuid.Data2 = 0xb3cc;
+    promoteThresholdGuid.Data3 = 0x4d79;
+    promoteThresholdGuid.Data4[0] = 0x81;
+    promoteThresholdGuid.Data4[1] = 0x9f;
+    promoteThresholdGuid.Data4[2] = 0x83;
+    promoteThresholdGuid.Data4[3] = 0x74;
+    promoteThresholdGuid.Data4[4] = 0x15;
+    promoteThresholdGuid.Data4[5] = 0x2c;
+    promoteThresholdGuid.Data4[6] = 0xbe;
+    promoteThresholdGuid.Data4[7] = 0x7c;
+    
+    // GUID_PROCESSOR_IDLE_STATE_MAXIMUM: 9943e905-9a30-4ec1-9b99-44dd3b76f7a2
+    GUID idleStateMaxGuid;
+    idleStateMaxGuid.Data1 = 0x9943e905;
+    idleStateMaxGuid.Data2 = 0x9a30;
+    idleStateMaxGuid.Data3 = 0x4ec1;
+    idleStateMaxGuid.Data4[0] = 0x9b;
+    idleStateMaxGuid.Data4[1] = 0x99;
+    idleStateMaxGuid.Data4[2] = 0x44;
+    idleStateMaxGuid.Data4[3] = 0xdd;
+    idleStateMaxGuid.Data4[4] = 0x3b;
+    idleStateMaxGuid.Data4[5] = 0x76;
+    idleStateMaxGuid.Data4[6] = 0xf7;
+    idleStateMaxGuid.Data4[7] = 0xa2;
 
     bool success = true;
-    if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &setting, value) != ERROR_SUCCESS)
+    
+    if (disableIdle)
     {
-        success = false;
+        // Disable idle states
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &idleDisableGuid, 1) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &idleDisableGuid, 1) != ERROR_SUCCESS)
+            success = false;
+        
+        // Set demote threshold to 100% to prevent demotion to deeper C-states
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &demoteThresholdGuid, 100) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &demoteThresholdGuid, 100) != ERROR_SUCCESS)
+            success = false;
+        
+        // Set promote threshold to 100% to prevent promotion to deeper C-states
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &promoteThresholdGuid, 100) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &promoteThresholdGuid, 100) != ERROR_SUCCESS)
+            success = false;
+        
+        // Set maximum idle state to 0 (C0 only)
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &idleStateMaxGuid, 0) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &idleStateMaxGuid, 0) != ERROR_SUCCESS)
+            success = false;
     }
-    if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &setting, value) != ERROR_SUCCESS)
+    else
     {
-        success = false;
+        // Restore default idle settings
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &idleDisableGuid, 0) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &idleDisableGuid, 0) != ERROR_SUCCESS)
+            success = false;
+        
+        // Restore default thresholds (typically around 50-80%)
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &demoteThresholdGuid, 50) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &demoteThresholdGuid, 50) != ERROR_SUCCESS)
+            success = false;
+        
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &promoteThresholdGuid, 50) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &promoteThresholdGuid, 50) != ERROR_SUCCESS)
+            success = false;
+        
+        // Restore maximum idle state (typically 2 or 3 for modern CPUs)
+        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &idleStateMaxGuid, 2) != ERROR_SUCCESS)
+            success = false;
+        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &idleStateMaxGuid, 2) != ERROR_SUCCESS)
+            success = false;
     }
+    
     if (success && PowerSetActiveScheme(nullptr, activeScheme) != ERROR_SUCCESS)
     {
         success = false;
@@ -650,123 +760,6 @@ bool ProcessManager::ApplyIdleState(bool disableIdle)
 void ProcessManager::RestoreIdleState()
 {
     ApplyIdleState(false);
-}
-
-bool ProcessManager::ApplyFrequencyLock(bool lock)
-{
-    GUID* activeScheme = nullptr;
-    if (PowerGetActiveScheme(nullptr, &activeScheme) != ERROR_SUCCESS)
-    {
-        LOG_WARN("Failed to query active power scheme for frequency lock");
-        return false;
-    }
-
-    GUID subgroup = GUID_PROCESSOR_SETTINGS_SUBGROUP;
-    
-    // Processor boost mode GUID
-    GUID boostGuid;
-    boostGuid.Data1 = 0xbe337238;
-    boostGuid.Data2 = 0x0d82;
-    boostGuid.Data3 = 0x4146;
-    boostGuid.Data4[0] = 0xa9;
-    boostGuid.Data4[1] = 0x60;
-    boostGuid.Data4[2] = 0x4f;
-    boostGuid.Data4[3] = 0x37;
-    boostGuid.Data4[4] = 0x49;
-    boostGuid.Data4[5] = 0xd4;
-    boostGuid.Data4[6] = 0x70;
-    boostGuid.Data4[7] = 0xc7;
-
-    // Min processor state GUID
-    GUID minStateGuid;
-    minStateGuid.Data1 = 0x893dee8e;
-    minStateGuid.Data2 = 0x2bef;
-    minStateGuid.Data3 = 0x41e0;
-    minStateGuid.Data4[0] = 0x89;
-    minStateGuid.Data4[1] = 0xc6;
-    minStateGuid.Data4[2] = 0xb5;
-    minStateGuid.Data4[3] = 0x5d;
-    minStateGuid.Data4[4] = 0x09;
-    minStateGuid.Data4[5] = 0x29;
-    minStateGuid.Data4[6] = 0x96;
-    minStateGuid.Data4[7] = 0x4c;
-
-    // Max processor state GUID
-    GUID maxStateGuid;
-    maxStateGuid.Data1 = 0xbc5038f7;
-    maxStateGuid.Data2 = 0x23e0;
-    maxStateGuid.Data3 = 0x4960;
-    maxStateGuid.Data4[0] = 0x96;
-    maxStateGuid.Data4[1] = 0xda;
-    maxStateGuid.Data4[2] = 0x33;
-    maxStateGuid.Data4[3] = 0xab;
-    maxStateGuid.Data4[4] = 0xaf;
-    maxStateGuid.Data4[5] = 0x59;
-    maxStateGuid.Data4[6] = 0x35;
-    maxStateGuid.Data4[7] = 0xec;
-
-    bool success = true;
-    
-    if (lock)
-    {
-        // Disable boost (0), set min/max to 100%
-        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &boostGuid, 0) != ERROR_SUCCESS)
-            success = false;
-        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &boostGuid, 0) != ERROR_SUCCESS)
-            success = false;
-        
-        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &minStateGuid, 100) != ERROR_SUCCESS)
-            success = false;
-        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &minStateGuid, 100) != ERROR_SUCCESS)
-            success = false;
-        
-        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &maxStateGuid, 100) != ERROR_SUCCESS)
-            success = false;
-        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &maxStateGuid, 100) != ERROR_SUCCESS)
-            success = false;
-    }
-    else
-    {
-        // Restore: boost = 2, min = 5%, max = 100%
-        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &boostGuid, 2) != ERROR_SUCCESS)
-            success = false;
-        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &boostGuid, 2) != ERROR_SUCCESS)
-            success = false;
-        
-        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &minStateGuid, 5) != ERROR_SUCCESS)
-            success = false;
-        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &minStateGuid, 5) != ERROR_SUCCESS)
-            success = false;
-        
-        if (PowerWriteACValueIndex(nullptr, activeScheme, &subgroup, &maxStateGuid, 100) != ERROR_SUCCESS)
-            success = false;
-        if (PowerWriteDCValueIndex(nullptr, activeScheme, &subgroup, &maxStateGuid, 100) != ERROR_SUCCESS)
-            success = false;
-    }
-
-    if (success && PowerSetActiveScheme(nullptr, activeScheme) != ERROR_SUCCESS)
-    {
-        success = false;
-    }
-
-    if (activeScheme)
-    {
-        ::LocalFree(activeScheme);
-    }
-
-    if (!success)
-    {
-        LOG_WARN("Failed to apply CPU frequency lock settings");
-        return false;
-    }
-
-    LOG_INFO("CPU frequency %s", lock ? "locked to base frequency" : "settings restored");
-    return true;
-}
-
-void ProcessManager::RestoreFrequencySettings()
-{
-    ApplyFrequencyLock(false);
 }
 
 bool ProcessManager::HaveMonitoredProcessesChanged(const ConfigParser& config)
