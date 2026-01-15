@@ -99,7 +99,7 @@ threaddesc=<thread name pattern>[*], modifiers...
 
 ## Example Configuration
 
-This example is tuned for an i9-10850K with USB on physical core 0, GPU on 4:
+This example is tuned for an i9-10850K with affinities: USB on physical core 0, GPU on 4, NIC on 5
 
 ```ini
 [Settings]
