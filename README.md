@@ -4,7 +4,6 @@ A self-contained game optimizer with intelligent thread detection.
 
 ## Features
 
-### Combined from DARKSTAR
 - **Intelligent Game Thread Detection**: Automatically identifies main game threads, render threads, audio threads, and worker threads
 - **Module-based Thread Analysis**: Uses thread start addresses to determine which module spawned each thread
 - **Thread Description Parsing**: Analyzes thread descriptions for classification
@@ -86,11 +85,3 @@ The detector analyzes:
 - Thread start addresses and parent modules
 - Thread priority levels
 - Thread state (Running/Waiting)
-
-## Credits
-
-Based on advanced game optimization techniques and intelligent thread detection.
-
-## License
-
-MIT License - See LICENSE file for details.
