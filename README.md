@@ -4,7 +4,7 @@ A self-contained game optimizer with intelligent thread detection.
 
 ## Features
 
-### ProcRipper combined with functions from DARKSTAR
+### Combined from DARKSTAR
 - **Intelligent Game Thread Detection**: Automatically identifies main game threads, render threads, audio threads, and worker threads
 - **Module-based Thread Analysis**: Uses thread start addresses to determine which module spawned each thread
 - **Thread Description Parsing**: Analyzes thread descriptions for classification
@@ -58,6 +58,10 @@ config/
 
 See the existing `.GCFG` files for format examples.
 
+### Runtime Prompt
+
+On startup, DARKSTAR prompts for the game executable name (e.g. `MyGame.exe`) to ensure the selected game is monitored even without a preexisting entry.
+
 ## Hotkeys
 
 - **CTRL+SHIFT+V** - Toggle verbose logging
@@ -85,4 +89,8 @@ The detector analyzes:
 
 ## Credits
 
-https://github.com/bdgrix/ProcRipper
+Based on advanced game optimization techniques and intelligent thread detection.
+
+## License
+
+MIT License - See LICENSE file for details.
