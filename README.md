@@ -4,7 +4,6 @@ A self-contained game optimizer with intelligent thread detection.
 
 ## Features
 
-### Combined from DARKSTAR
 - **Intelligent Game Thread Detection**: Automatically identifies main game threads, render threads, audio threads, and worker threads
 - **Module-based Thread Analysis**: Uses thread start addresses to determine which module spawned each thread
 - **Thread Description Parsing**: Analyzes thread descriptions for classification
@@ -27,6 +26,15 @@ A self-contained game optimizer with intelligent thread detection.
 2. Double-click `BUILD.bat`
 3. Choose option 1 for self-contained build
 4. Find your executable at `Bin\Release\publish\DARKSTAR.exe`
+
+## Kernel driver instructions
+- **building in case of getting the Spectre Mitigation error**:<br>
+Developer Command Prompt for VS 2022<br>
+cd path\to\driver<br>
+msbuild DarkstarDriver.vcxproj /p:Configuration=Release /p:Platform=x64 /p:SpectreMitigation=false<br>
+
+Register DarkstarDriver.sys as a service, disable Driver Signature Enforcement to start (DSEFix and OSR Driver Loader for ease of use, though DSEFix is certain to cause a BSOD after some time)
+
 
 ### Manual Build (Self-Contained)
 
@@ -86,11 +94,3 @@ The detector analyzes:
 - Thread start addresses and parent modules
 - Thread priority levels
 - Thread state (Running/Waiting)
-
-## Credits
-
-Based on advanced game optimization techniques and intelligent thread detection.
-
-## License
-
-MIT License - See LICENSE file for details.
