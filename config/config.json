@@ -1,0 +1,173 @@
+{
+  // ================================================================
+  // DARKSTAR Configuration
+  //
+  // games:               Executables to detect and actively optimize.
+  //                      IntelligentThreadDetector handles per-thread
+  //                      tuning automatically at runtime.
+  //
+  // background_processes: Processes demoted to IDLE during game sessions.
+  //
+  // disable_boost:       Processes with priority boost disabled
+  //                      (more consistent scheduling, less jitter).
+  //
+  // memory_caps:         Per-app RAM limits enforced during gaming.
+  //
+  // settings:            Global feature toggles.
+  // ================================================================
+
+  "games": [
+    "AC2-Win64-Shipping.exe",
+    "Aimbeast-Win64-Shipping.exe",
+    "borderlands2.exe",
+    "BorderlandsPreSequel.exe",
+    "Client-Win64-Shipping.exe",
+    "cs2.exe",
+    "Diablo IV.exe",
+    "DiabloImmortal.exe",
+    "Discovery-d.exe",
+    "dota2.exe",
+    "EasyAim.exe",
+    "farcry5.exe",
+    "FortniteClient-Win64-Shipping.exe",
+    "forza_gaming.desktop.x64_release_final.exe",
+    "ForzaHorizon4.exe",
+    "ForzaHorizon5.exe",
+    "FSD-Win64-Shipping.exe",
+    "GenshinImpact.exe",
+    "GoWR.exe",
+    "GTA5.exe",
+    "hl2.exe",
+    "KILL KNIGHT.exe",
+    "League of Legends.exe",
+    "Maine-WinGDK-Shipping.exe",
+    "Minecraft.Windows.exe",
+    "osu!.exe",
+    "overwatch.exe",
+    "PathOfExileSteam.exe",
+    "payday2_win32_release.exe",
+    "PAYDAY3Client-Win64-Shipping.exe",
+    "PAYDAY3Client-WinGDK-Shipping.exe",
+    "project8.exe",
+    "RDR2.exe",
+    "RobloxPlayerBeta.exe",
+    "RocketLeague.exe",
+    "SC2_x64.exe",
+    "Stalker2-Win64-Shipping.exe",
+    "StarRail.exe",
+    "Terraria.exe",
+    "tf_win64.exe",
+    "TheDivision.exe",
+    "Trackmania.exe",
+    "TslGame.exe",
+    "VALORANT-Win64-Shipping.exe",
+    "warfork_x64.exe",
+    "Warframe.x64.exe",
+    "Witchfire-Win64-Shipping.exe",
+    "wwzRetail.exe",
+    "ZenlessZoneZero.exe"
+  ],
+
+  "background_processes": [
+    "ApplicationFrameHost.exe",
+    "brave.exe",
+    "chrome.exe",
+    "cmd.exe",
+    "conhost.exe",
+    "CorsairService.exe",
+    "ctfmon.exe",
+    "Discord.exe",
+    "dllhost.exe",
+    "EpicGamesLauncher.exe",
+    "explorer.exe",
+    "firefox.exe",
+    "iCUE.exe",
+    "LGHUB.exe",
+    "Lightshot.exe",
+    "msedge.exe",
+    "MsMpEng.exe",
+    "NisSrv.exe",
+    "nvcontainer.exe",
+    "NVDisplay.Container.exe",
+    "OneDrive.exe",
+    "powershell.exe",
+    "pwsh.exe",
+    "Razer Synapse.exe",
+    "RazerCentralService.exe",
+    "RiotClientServices.exe",
+    "RuntimeBroker.exe",
+    "SearchHost.exe",
+    "SearchIndexer.exe",
+    "SearchProtocolHost.exe",
+    "SecurityHealthService.exe",
+    "SecurityHealthSystray.exe",
+    "SettingSyncHost.exe",
+    "ShareX.exe",
+    "ShellExperienceHost.exe",
+    "ShellHost.exe",
+    "sihost.exe",
+    "Skype.exe",
+    "Slack.exe",
+    "SnippingTool.exe",
+    "StartMenuExperienceHost.exe",
+    "steam.exe",
+    "steamwebhelper.exe",
+    "SystemSettings.exe",
+    "taskhostw.exe",
+    "Teams.exe",
+    "TextInputHost.exe",
+    "thorium.exe",
+    "TiWorker.exe",
+    "TrustedInstaller.exe",
+    "UserOOBEBroker.exe",
+    "UsoClient.exe",
+    "WindowsTerminal.exe",
+    "wuauclt.exe",
+    "Zoom.exe"
+  ],
+
+  "disable_boost": [
+    "audiodg",
+    "ctfmon",
+    "discord",
+    "dllhost",
+    "dwm",
+    "explorer",
+    "gamingservices",
+    "gamingservicesnet",
+    "MSIAfterburner",
+    "NVDisplay.Container",
+    "NVIDIA Overlay",
+    "ProcessHacker",
+    "rundll32",
+    "RuntimeBroker",
+    "steam",
+    "steamwebhelper",
+    "svchost",
+    "SystemInformer",
+    "UbisoftGameLauncher",
+    "upc",
+    "UplayWebCore",
+    "winlogon",
+    "winws"
+  ],
+
+  "memory_caps": {
+    "enabled": true,
+    "prompt_before_restart": true,
+    "targets": {
+      "steam": 600,
+      "steamwebhelper": 400,
+      "Discord": 400,
+      "chrome": 1024,
+      "EpicGamesLauncher": 600
+    }
+  },
+
+  "settings": {
+    "use_kernel_driver": true,
+    "auto_idle": false,
+    "verbose_startup": false,
+    "network_throttle": false
+  }
+}
