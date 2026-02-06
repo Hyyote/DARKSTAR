@@ -57,14 +57,8 @@ Copy the `config` folder next to `DARKSTAR.exe`:
 ```
 DARKSTAR.exe
 config/
-  ├── GAME_PRIORITY.GCFG     # Game process configurations
-  ├── PROC_PRIORITY.GCFG     # System process configurations
-  └── DARKSTAR.GCFG          # General settings
+  ├── config.json
 ```
-
-### Configuration File Format
-
-See the existing `.GCFG` files for format examples.
 
 ### Runtime Prompt
 
