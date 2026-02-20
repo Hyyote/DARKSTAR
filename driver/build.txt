@@ -1,3 +1,0 @@
-run Developer Command Prompt for VS 2022
-cd path\to\driver
-msbuild DarkstarDriver.vcxproj /p:Configuration=Release /p:Platform=x64 /p:SpectreMitigation=false
