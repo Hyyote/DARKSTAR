@@ -1,2 +1,0 @@
-C:\Users\user\Downloads\DARKSTAR project files\Bin\Release\publish\config\config.json
-C:\Users\user\Downloads\DARKSTAR project files\Bin\Release\publish\DARKSTAR.exe
