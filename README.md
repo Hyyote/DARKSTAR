@@ -43,9 +43,9 @@ cd DARKSTAR
 dotnet publish src\DARKSTAR\DARKSTAR.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -o Bin\Release\publish
 ```
 
-### Visual Studio 2022
+### Visual Studio
 
-1. Open `DARKSTAR.sln` in Visual Studio 2022
+1. Open `DARKSTAR.sln` in Visual Studio
 2. Right-click project → **Publish**
 3. Configure: Folder → Self-contained → win-x64 → Single file
 4. Click Publish
