@@ -1,0 +1,103 @@
+{
+  // ================================================================
+  // DARKSTAR Configuration
+  //
+  // games:               Executables to detect and actively optimize.
+  //                      IntelligentThreadDetector handles per-thread
+  //                      tuning automatically at runtime.
+  //
+  // background_processes: Processes demoted during game sessions.
+  //                      NEVER add system-critical processes here:
+  //                      conhost, cmd, csrss, dwm, sihost, ctfmon,
+  //                      dllhost, RuntimeBroker, taskhostw, lsass,
+  //                      smss, wininit, winlogon, svchost, fontdrvhost
+  //
+  // disable_boost:       Processes with priority boost disabled
+  //                      (more consistent scheduling, less jitter).
+  //
+  // settings:            Global feature toggles.
+  // ================================================================
+
+  "games": [],
+
+  "background_processes": [
+    "ApplicationFrameHost.exe",
+    "brave.exe",
+    "chrome.exe",
+    "CorsairService.exe",
+    "Discord.exe",
+    "EpicGamesLauncher.exe",
+    "firefox.exe",
+    "iCUE.exe",
+    "LGHUB.exe",
+    "Lightshot.exe",
+    "msedge.exe",
+    "MsMpEng.exe",
+    "NisSrv.exe",
+    "nvcontainer.exe",
+    "NVDisplay.Container.exe",
+    "OneDrive.exe",
+    "Razer Synapse.exe",
+    "RazerCentralService.exe",
+    "RiotClientServices.exe",
+    "SearchHost.exe",
+    "SearchIndexer.exe",
+    "SearchProtocolHost.exe",
+    "SecurityHealthService.exe",
+    "SecurityHealthSystray.exe",
+    "SettingSyncHost.exe",
+    "ShareX.exe",
+    "ShellExperienceHost.exe",
+    "Skype.exe",
+    "Slack.exe",
+    "StartMenuExperienceHost.exe",
+    "steam.exe",
+    "steamwebhelper.exe",
+    "SystemSettings.exe",
+    "Teams.exe",
+    "TextInputHost.exe",
+    "thorium.exe",
+    "TiWorker.exe",
+    "TrustedInstaller.exe",
+    "UserOOBEBroker.exe",
+    "UsoClient.exe",
+    "Zoom.exe"
+  ],
+
+  "disable_boost": [
+    "audiodg",
+    "ctfmon",
+    "discord",
+    "dllhost",
+    "dwm",
+    "explorer",
+    "gamingservices",
+    "gamingservicesnet",
+    "MSIAfterburner",
+    "NVDisplay.Container",
+    "NVIDIA Overlay",
+    "rundll32",
+    "RuntimeBroker",
+    "steam",
+    "steamwebhelper",
+    "svchost",
+    "UbisoftGameLauncher",
+    "upc",
+    "UplayWebCore",
+    "winlogon",
+    "winws"
+  ],
+
+  "settings": {
+    "use_kernel_driver": true,
+    "auto_idle": false,
+    "verbose_startup": false,
+    "network_throttle": false,
+    "WINBLOCKKEYS": true,
+    "BLOCKNOGAMINGMONITOR": "auto",
+    "DPC_CORE0_LOCK": false,
+    "memory_drain": true,
+    "memory_drain_interval_ms": 5000,
+    "memory_drain_timeout_ms": 4500
+  }
+}
